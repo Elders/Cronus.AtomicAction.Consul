@@ -7,11 +7,11 @@ using Microsoft.Extensions.Options;
 
 namespace Cronus.AtomicAction.Consul
 {
-    public class ConsulLock : ILock
+    public class ConsulLock : ILock, IDisposable
     {
         private static readonly ILogger logger = CronusLogger.CreateLogger<ConsulLock>();
 
-        private readonly IConsulClient client;
+        private IConsulClient client;
         private ConsulLockOptions options;
 
         public ConsulLock(IConsulClient client, IOptionsMonitor<ConsulLockOptions> options)
@@ -69,6 +69,12 @@ namespace Cronus.AtomicAction.Consul
             {
                 logger.LogError(ex, $"Unable to release lock for resource '{resource}'");
             }
+        }
+
+        public void Dispose()
+        {
+            (client as IDisposable)?.Dispose();
+            client = null;
         }
 
         private string GetSessionName(string resource) => $"session/{resource}";
