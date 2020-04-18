@@ -43,8 +43,7 @@ namespace Cronus.AtomicAction.Consul
 
             try
             {
-                var sessionTtl = ttl.TotalSeconds < 10 ? 10 : ttl.TotalSeconds;
-                var sessionResponse = client.CreateSessionAsync(new ConsulClient.CreateSessionRequest(GetSessionName(resource), "delete", (int)sessionTtl, options.LockDelay)).Result;
+                var sessionResponse = client.CreateSessionAsync(new ConsulClient.CreateSessionRequest(GetSessionName(resource), (int)ttl.TotalSeconds, options.LockDelay)).Result;
                 if (sessionResponse.Success == false)
                     return false;
 
@@ -77,6 +76,6 @@ namespace Cronus.AtomicAction.Consul
             client = null;
         }
 
-        private string GetSessionName(string resource) => $"session/{resource}";
+        private string GetSessionName(string resource) => $"session/lock/{resource}";
     }
 }

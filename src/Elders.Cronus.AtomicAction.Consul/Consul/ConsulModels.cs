@@ -17,22 +17,29 @@ namespace Cronus.AtomicAction.Consul
 
         public class CreateSessionRequest
         {
-            public CreateSessionRequest(string name, string behavior = "delete", int ttl = 10, long lockDelay = 0)
+            public CreateSessionRequest(string name, int ttlSeconds = 10, long lockDelaySeconds = 0, SessionBehavior behavior = SessionBehavior.Delete)
             {
                 if (string.IsNullOrEmpty(name)) throw new ArgumentException(nameof(name));
-                if (behavior != "delete" && behavior != "release") throw new ArgumentException("Allowed behavior values are 'delete' and 'release'.", nameof(behavior));
-                if (ttl < 10 || ttl > 86400) throw new ArgumentException("Sesstion ttl can be between 10 and 86400 seconds");
+
+                if (ttlSeconds < 10) ttlSeconds = 10;
+                if (ttlSeconds > 86400) ttlSeconds = 86400;
 
                 Name = name;
-                Behavior = behavior;
-                Ttl = $"{ttl}s";
-                LockDelay = $"{lockDelay}s";
+                Behavior = behavior.ToString().ToLower();
+                Ttl = $"{ttlSeconds}s";
+                LockDelay = $"{lockDelaySeconds}s";
             }
 
             public string Name { get; }
             public string Ttl { get; }
             public string Behavior { get; }
             public string LockDelay { get; }
+        }
+
+        public enum SessionBehavior
+        {
+            Release = 0,
+            Delete = 1
         }
 
         public class CreateSessionResponse
