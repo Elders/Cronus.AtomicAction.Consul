@@ -38,15 +38,10 @@ namespace Cronus.AtomicAction.Consul
             return new Result<bool>(found);
         }
 
-        public Result<bool> SaveRevision(IAggregateRootId aggregateRootId, int revision, TimeSpan ttl)
+        public Result<bool> SaveRevision(IAggregateRootId aggregateRootId, int revision, string session)
         {
             var revisionKey = GetRevisionKey(aggregateRootId);
-            var sessionName = $"session/{revisionKey}-{revision}";
-            var session = client.CreateSessionAsync(new ConsulClient.CreateSessionRequest(sessionName, (int)ttl.TotalSeconds)).Result;
-            if (session.Success == false)
-                return new Result<bool>(false).WithError($"Unable to create session '{sessionName}', ttl '{ttl.TotalSeconds}'s");
-
-            var created = client.CreateKeyValueAsync(new ConsulClient.CreateKeyValueRequest(revisionKey, revision, session.Id)).Result;
+            var created = client.CreateKeyValueAsync(new ConsulClient.CreateKeyValueRequest(revisionKey, revision, session)).Result;
             return new Result<bool>(created);
         }
 

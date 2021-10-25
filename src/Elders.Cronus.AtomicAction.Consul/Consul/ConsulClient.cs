@@ -26,25 +26,6 @@ namespace Cronus.AtomicAction.Consul
             CreateHttpClient(options.CurrentValue);
         }
 
-        public async Task<IEnumerable<ReadKeyValueResponse>> ReadKeyValueAsync(string key, bool recurce = false)
-        {
-            var path = $"/v1/kv/{key}?recurce={recurce}";
-            var response = await httpClient.GetAsync(path).ConfigureAwait(false);
-
-            var responseString = await response.Content.ReadAsStringAsync().ConfigureAwait(false);
-            if (response.StatusCode == HttpStatusCode.NotFound)
-                return new ReadKeyValueResponse[0]; // key was not found
-
-            if (response.IsSuccessStatusCode == false)
-            {
-                logger.Error($"Status code: {response.StatusCode} Request: GET {path}; Response: {responseString}");
-                return new ReadKeyValueResponse[0];
-            }
-
-            var result = JsonSerializer.Deserialize<IEnumerable<ReadKeyValueResponse>>(responseString, serializerOptions);
-            return result;
-        }
-
         public async Task<CreateSessionResponse> CreateSessionAsync(CreateSessionRequest request)
         {
             var json = JsonSerializer.Serialize(request);
@@ -60,6 +41,25 @@ namespace Cronus.AtomicAction.Consul
             }
 
             var result = JsonSerializer.Deserialize<CreateSessionResponse>(responseString, serializerOptions);
+            return result;
+        }
+
+        public async Task<IEnumerable<ReadSessionResponse>> ReadSessionAsync(string id)
+        {
+            var path = $"/session/info/{id}?consistent";
+            var response = await httpClient.GetAsync(path).ConfigureAwait(false);
+
+            var responseString = await response.Content.ReadAsStringAsync().ConfigureAwait(false);
+            if (response.StatusCode == HttpStatusCode.NotFound)
+                return new ReadSessionResponse[0];
+
+            if (response.IsSuccessStatusCode == false)
+            {
+                logger.Error($"Status code: {response.StatusCode} Request: GET {path}; Response: {responseString}");
+                return new ReadSessionResponse[0];
+            }
+
+            var result = JsonSerializer.Deserialize<IEnumerable<ReadSessionResponse>>(responseString, serializerOptions);
             return result;
         }
 
@@ -101,6 +101,25 @@ namespace Cronus.AtomicAction.Consul
             }
 
             return bool.Parse(responseString);
+        }
+
+        public async Task<IEnumerable<ReadKeyValueResponse>> ReadKeyValueAsync(string key, bool recurce = false)
+        {
+            var path = $"/v1/kv/{key}?recurce={recurce}&consistent";
+            var response = await httpClient.GetAsync(path).ConfigureAwait(false);
+
+            var responseString = await response.Content.ReadAsStringAsync().ConfigureAwait(false);
+            if (response.StatusCode == HttpStatusCode.NotFound)
+                return new ReadKeyValueResponse[0]; // key was not found
+
+            if (response.IsSuccessStatusCode == false)
+            {
+                logger.Error($"Status code: {response.StatusCode} Request: GET {path}; Response: {responseString}");
+                return new ReadKeyValueResponse[0];
+            }
+
+            var result = JsonSerializer.Deserialize<IEnumerable<ReadKeyValueResponse>>(responseString, serializerOptions);
+            return result;
         }
 
         public async Task<bool> DeleteKeyValueAsync(string key)

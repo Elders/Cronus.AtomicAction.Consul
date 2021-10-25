@@ -4,30 +4,30 @@ namespace Cronus.AtomicAction.Consul
 {
     public partial class ConsulClient
     {
-        public class ReadKeyValueResponse
+        public enum SessionBehavior
         {
-            public int CreateIndex { get; set; }
-            public int ModifyIndex { get; set; }
-            public int LockIndex { get; set; }
-            public string Key { get; set; }
-            public int Flags { get; set; }
-            public string Value { get; set; }
-            public string Session { get; set; }
+            Release = 0,
+            Delete = 1
         }
 
         public class CreateSessionRequest
         {
-            public CreateSessionRequest(string name, int ttlSeconds = 10, long lockDelaySeconds = 0, SessionBehavior behavior = SessionBehavior.Delete)
+            public CreateSessionRequest(string name, TimeSpan ttl, TimeSpan? lockDelay = null, SessionBehavior behavior = SessionBehavior.Delete)
             {
                 if (string.IsNullOrEmpty(name)) throw new ArgumentException(nameof(name));
 
-                if (ttlSeconds < 10) ttlSeconds = 10;
-                if (ttlSeconds > 86400) ttlSeconds = 86400;
-
                 Name = name;
                 Behavior = behavior.ToString().ToLower();
-                Ttl = $"{ttlSeconds}s";
-                LockDelay = $"{lockDelaySeconds}s";
+
+                if (ttl.TotalSeconds < 10)
+                    Ttl = "10s";
+                else if (ttl.TotalSeconds > 86400)
+                    Ttl = "86400s";
+                else
+                    Ttl = $"{ttl.TotalSeconds}s";
+
+                if (lockDelay.HasValue && lockDelay.Value > TimeSpan.Zero)
+                    LockDelay = $"{lockDelay}s";
             }
 
             public string Name { get; }
@@ -36,16 +36,23 @@ namespace Cronus.AtomicAction.Consul
             public string LockDelay { get; }
         }
 
-        public enum SessionBehavior
-        {
-            Release = 0,
-            Delete = 1
-        }
-
         public class CreateSessionResponse
         {
             public string Id { get; set; }
             public bool Success { get => string.IsNullOrEmpty(Id) == false; }
+        }
+
+        public class ReadSessionResponse
+        {
+            public string Id { get; set; }
+            public string Name { get; set; }
+            public string Node { get; set; }
+            public string[] Checks { get; set; }
+            public long LockDelay { get; set; }
+            public string Behavior { get; set; }
+            public string Ttl { get; set; }
+            public int CreateIndex { get; set; }
+            public int ModifyIndex { get; set; }
         }
 
         public class CreateKeyValueRequest
@@ -59,10 +66,9 @@ namespace Cronus.AtomicAction.Consul
             private CreateKeyValueRequest(string key, object value, string sessionId, int cas)
             {
                 if (string.IsNullOrEmpty(key)) throw new ArgumentException(nameof(key));
-                if (value is null) throw new ArgumentException(nameof(value));
 
                 Key = key;
-                Value = value;
+                Value = value ?? new object();
                 SessionId = sessionId;
                 Cas = cas;
             }
@@ -71,6 +77,17 @@ namespace Cronus.AtomicAction.Consul
             public object Value { get; }
             public string SessionId { get; }
             public int Cas { get; set; }
+        }
+
+        public class ReadKeyValueResponse
+        {
+            public int CreateIndex { get; set; }
+            public int ModifyIndex { get; set; }
+            public int LockIndex { get; set; }
+            public string Key { get; set; }
+            public int Flags { get; set; }
+            public string Value { get; set; }
+            public string Session { get; set; }
         }
     }
 }
