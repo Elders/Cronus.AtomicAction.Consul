@@ -53,7 +53,7 @@ namespace Cronus.AtomicAction.Consul
         {
             try
             {
-                client.DeleteKeyValueAsync(resource).Wait();
+                client.DeleteSessionAsync(resource).ConfigureAwait(false).GetAwaiter().GetResult();
             }
             catch (Exception ex)
             {

@@ -51,6 +51,6 @@ namespace Cronus.AtomicAction.Consul
             client = null;
         }
 
-        private string GetRevisionKey(IAggregateRootId aggregateRootId) => $"revision/{Convert.ToBase64String(aggregateRootId.RawId)}";
+        private string GetRevisionKey(IAggregateRootId aggregateRootId) => $"cronus/revision/{Convert.ToBase64String(aggregateRootId.RawId)}";
     }
 }

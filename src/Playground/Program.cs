@@ -1,5 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using Cronus.AtomicAction.Consul;
 using Elders.Cronus;
@@ -12,15 +14,15 @@ namespace Playground
 {
     class Program
     {
-        static async Task Main(string[] args)
+        public static async Task Main(string[] args)
         {
             var configuration = new ConfigurationBuilder()
                 .AddInMemoryCollection(new Dictionary<string, string>
                 {
-                    { "cronus:atomicaction:consul:endpoint", "http://consul.local.com:8500" },
-                    { "cronus:atomicaction:consul:token", "authToken" },
-                    { "cronus:atomicaction:consul:lockttl", "00:01:00.000" },
-                    { "cronus:atomicaction:consul:revisionttl", "00:01:00.000" }
+                        { "cronus:atomicaction:consul:endpoint", "http://consul.local.com:8500" },
+                        { "cronus:atomicaction:consul:token", "authToken" },
+                        { "cronus:atomicaction:consul:lockttl", "00:00:00.000" }, // With manual unlock session ttl is always * 2 
+                        { "cronus:atomicaction:consul:revisionttl", "00:00:00.000" }
                 }).Build();
 
             var servises = new ServiceCollection();
@@ -44,19 +46,39 @@ namespace Playground
             CronusLogger.SetStartupLogger(logger.CreateLogger<Program>());
 
             var id = new HeadquarterId("20ed0b20-0f7f-4659-9211-0bee5b693e51", "elders");
+            var revision = 1;
+            var tasks = new List<Task>();
 
-            for (int revision = 1; revision <= 5; revision++)
+            for (int i = 0; i < 3; i++)
             {
-                System.Threading.Thread.Sleep(100);
-                var result = atomicAction.Execute(id, revision, () =>
-                {
-                    Console.WriteLine($"{DateTime.Now.TimeOfDay}-{id}");
-                });
-
-                Console.WriteLine($"{DateTime.Now.TimeOfDay}-{result.IsSuccessful}-{string.Join(", ", result.Errors)}");
+                tasks.Add(Task.Run(() => ExecuteAtomicAction(atomicAction, id, revision)));
             }
 
-            Console.ReadKey();
+            await Task.WhenAll(tasks);
+        }
+
+        public static void ExecuteAtomicAction(IAggregateRootAtomicAction atomicAction, IAggregateRootId id, int revision)
+        {
+            while (true)
+            {
+                var result = atomicAction.Execute(id, revision++, () =>
+                {
+                    //Thread.Sleep(200);
+                });
+
+                if (result.IsNotSuccessful && result.Errors.Any() == true)
+                {
+                    revision--;
+                    //Console.ForegroundColor = ConsoleColor.Red;
+                    Console.WriteLine($"{DateTime.Now.TimeOfDay}-{result.IsSuccessful}-{result.Errors.LastOrDefault().Message}, rev: {revision}, Task: {Task.CurrentId}");
+                }
+                else
+                {
+                    Console.ForegroundColor = ConsoleColor.Green;
+                    Console.WriteLine($"{DateTime.Now.TimeOfDay}-{result.IsSuccessful}-{result.Errors.LastOrDefault()}, rev: {revision}, Task: {Task.CurrentId}");
+                    Console.ResetColor();
+                }
+            }
         }
     }
 

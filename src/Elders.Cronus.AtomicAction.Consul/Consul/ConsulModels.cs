@@ -12,7 +12,7 @@ namespace Cronus.AtomicAction.Consul
 
         public class CreateSessionRequest
         {
-            public CreateSessionRequest(string name, TimeSpan ttl, TimeSpan? lockDelay = null, SessionBehavior behavior = SessionBehavior.Delete)
+            public CreateSessionRequest(string name, TimeSpan ttl, TimeSpan? lockDelay, SessionBehavior behavior = SessionBehavior.Delete)
             {
                 if (string.IsNullOrEmpty(name)) throw new ArgumentException(nameof(name));
 
@@ -26,8 +26,8 @@ namespace Cronus.AtomicAction.Consul
                 else
                     Ttl = $"{ttl.TotalSeconds}s";
 
-                if (lockDelay.HasValue && lockDelay.Value > TimeSpan.Zero)
-                    LockDelay = $"{lockDelay}s";
+                if (lockDelay.HasValue && lockDelay.Value >= TimeSpan.Zero)
+                    LockDelay = $"{lockDelay.Value.TotalSeconds}s";
             }
 
             public string Name { get; }

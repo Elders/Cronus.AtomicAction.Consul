@@ -4,6 +4,7 @@ using Elders.Cronus.AtomicAction;
 using Elders.Cronus.Userfull;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
+using static Cronus.AtomicAction.Consul.ConsulClient;
 
 namespace Cronus.AtomicAction.Consul
 {
@@ -27,8 +28,8 @@ namespace Cronus.AtomicAction.Consul
 
         public Result<bool> Execute(IAggregateRootId arId, int aggregateRootRevision, Action action)
         {
-            var sessionName = $"session/{arId.Value}";
-            var session = consulClient.CreateSessionAsync(new ConsulClient.CreateSessionRequest(sessionName, options.LockTtl, null, ConsulClient.SessionBehavior.Release)).Result;
+            var sessionName = $"session/{arId}";
+            var session = consulClient.CreateSession(sessionName, options.LockTtl, options.RevisionTtl);
             if (session.Success == false)
                 return Result.Error("Unable to create session");
 
@@ -45,7 +46,7 @@ namespace Cronus.AtomicAction.Consul
 
                     if (actionResult.IsNotSuccessful)
                     {
-                        Rollback(arId, aggregateRootRevision - 1, session.Id);
+                        Rollback(arId, aggregateRootRevision, session.Id);
                         return Result.Error($"Action failed becouse of: {actionResult.Errors?.MakeJustOneException()}");
                     }
 
@@ -136,7 +137,7 @@ namespace Cronus.AtomicAction.Consul
 
         private void Rollback(IAggregateRootId arId, int revision, string session)
         {
-            revisionStore.SaveRevision(arId, revision, session);
+            revisionStore.SaveRevision(arId, revision - 1, session);
         }
 
         private void Unlock(string resource)

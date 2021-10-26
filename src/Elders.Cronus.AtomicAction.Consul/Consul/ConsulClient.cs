@@ -44,6 +44,11 @@ namespace Cronus.AtomicAction.Consul
             return result;
         }
 
+        public CreateSessionResponse CreateSession(string name, TimeSpan ttl, TimeSpan lockDelay)
+        {
+            return CreateSessionAsync(new CreateSessionRequest(name, ttl, lockDelay)).GetAwaiter().GetResult();
+        }
+
         public async Task<IEnumerable<ReadSessionResponse>> ReadSessionAsync(string id)
         {
             var path = $"/session/info/{id}?consistent";
