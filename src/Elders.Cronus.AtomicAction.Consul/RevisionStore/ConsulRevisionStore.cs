@@ -18,7 +18,7 @@ namespace Cronus.AtomicAction.Consul
         public Result<int> GetRevision(IAggregateRootId aggregateRootId)
         {
             var key = GetRevisionKey(aggregateRootId);
-            var readKeyValues = client.ReadKeyValueAsync(key).Result;
+            var readKeyValues = client.ReadKeyValueAsync(key).GetAwaiter().GetResult();
             var found = readKeyValues.FirstOrDefault(x => x.Key == key);
             if (found is null)
                 return new Result<int>().WithError($"Revision for aggregate root '{aggregateRootId.Value}' was not found.");
@@ -32,7 +32,7 @@ namespace Cronus.AtomicAction.Consul
         public Result<bool> HasRevision(IAggregateRootId aggregateRootId)
         {
             var key = GetRevisionKey(aggregateRootId);
-            var readKeyValues = client.ReadKeyValueAsync(key).Result;
+            var readKeyValues = client.ReadKeyValueAsync(key).GetAwaiter().GetResult(); ;
             var found = readKeyValues.Any(x => x.Key == key);
 
             return new Result<bool>(found);
@@ -41,7 +41,7 @@ namespace Cronus.AtomicAction.Consul
         public Result<bool> SaveRevision(IAggregateRootId aggregateRootId, int revision, string session)
         {
             var revisionKey = GetRevisionKey(aggregateRootId);
-            var created = client.CreateKeyValueAsync(new ConsulClient.CreateKeyValueRequest(revisionKey, revision, session)).Result;
+            var created = client.CreateKeyValueAsync(new CreateKeyValueRequest(revisionKey, revision, session)).GetAwaiter().GetResult(); ;
             return new Result<bool>(created);
         }
 

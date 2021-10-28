@@ -23,7 +23,7 @@ namespace Cronus.AtomicAction.Consul
 
             try
             {
-                var response = client.ReadKeyValueAsync(resource).Result;
+                var response = client.ReadKeyValueAsync(resource).GetAwaiter().GetResult(); ;
                 return response.Any(x => x.Key == resource);
             }
             catch (Exception ex)
@@ -39,7 +39,7 @@ namespace Cronus.AtomicAction.Consul
 
             try
             {
-                var keyValueResponse = client.CreateKeyValueAsync(new ConsulClient.CreateKeyValueRequest(resource, null, resource)).Result;
+                var keyValueResponse = client.CreateKeyValueAsync(new CreateKeyValueRequest(resource, null, resource)).GetAwaiter().GetResult(); ;
                 return keyValueResponse;
             }
             catch (Exception ex)

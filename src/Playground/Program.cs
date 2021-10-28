@@ -21,7 +21,7 @@ namespace Playground
                 {
                         { "cronus:atomicaction:consul:endpoint", "http://consul.local.com:8500" },
                         { "cronus:atomicaction:consul:token", "authToken" },
-                        { "cronus:atomicaction:consul:lockttl", "00:00:00.000" }, // With manual unlock session ttl is always * 2 
+                        { "cronus:atomicaction:consul:lockttl", "00:00:00.000" },
                         { "cronus:atomicaction:consul:revisionttl", "00:00:00.000" }
                 }).Build();
 
@@ -63,13 +63,12 @@ namespace Playground
             {
                 var result = atomicAction.Execute(id, revision++, () =>
                 {
-                    //Thread.Sleep(200);
+                    Thread.Sleep(200);
                 });
 
                 if (result.IsNotSuccessful && result.Errors.Any() == true)
                 {
-                    revision--;
-                    //Console.ForegroundColor = ConsoleColor.Red;
+                    revision--; // rollback
                     Console.WriteLine($"{DateTime.Now.TimeOfDay}-{result.IsSuccessful}-{result.Errors.LastOrDefault().Message}, rev: {revision}, Task: {Task.CurrentId}");
                 }
                 else

@@ -106,20 +106,25 @@ namespace Cronus.AtomicAction.Consul
             return revisionStore.SaveRevision(arId, revision - 1, session);
         }
 
+        private void Rollback(IAggregateRootId arId, int revision, string session)
+        {
+            revisionStore.SaveRevision(arId, revision - 1, session);
+        }
+
         private Result<bool> PersistRevision(IAggregateRootId arId, int revision, string session)
         {
             return revisionStore.SaveRevision(arId, revision, session);
+        }
+
+        private Result<bool> IncrementRevision(IAggregateRootId arId, int newRevision, string session)
+        {
+            return revisionStore.SaveRevision(arId, newRevision, session);
         }
 
         private bool IsConsecutiveRevision(IAggregateRootId arId, int revision)
         {
             var storedRevisionResult = revisionStore.GetRevision(arId);
             return storedRevisionResult.IsSuccessful && storedRevisionResult.Value == revision - 1;
-        }
-
-        private Result<bool> IncrementRevision(IAggregateRootId arId, int newRevision, string session)
-        {
-            return revisionStore.SaveRevision(arId, newRevision, session);
         }
 
         private Result<bool> ExecuteAction(Action action)
@@ -133,11 +138,6 @@ namespace Cronus.AtomicAction.Consul
             {
                 return Result.Error(ex);
             }
-        }
-
-        private void Rollback(IAggregateRootId arId, int revision, string session)
-        {
-            revisionStore.SaveRevision(arId, revision - 1, session);
         }
 
         private void Unlock(string resource)
