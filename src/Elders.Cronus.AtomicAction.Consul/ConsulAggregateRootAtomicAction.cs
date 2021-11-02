@@ -3,128 +3,80 @@ using Elders.Cronus;
 using Elders.Cronus.AtomicAction;
 using Elders.Cronus.Userfull;
 using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Options;
-using static Cronus.AtomicAction.Consul.ConsulClient;
 
 namespace Cronus.AtomicAction.Consul
 {
-    public class ConsulAggregateRootAtomicAction : IAggregateRootAtomicAction
+    internal class ConsulAggregateRootAtomicAction : IAggregateRootAtomicAction
     {
         private static readonly ILogger logger = CronusLogger.CreateLogger<ConsulAggregateRootAtomicAction>();
+        private IConsulClient consul;
 
-        private ILock aggregateRootLock;
-        private IRevisionStore revisionStore;
-        private IConsulClient consulClient;
-        private ConsulAggregateRootAtomicActionOptions options;
-
-        public ConsulAggregateRootAtomicAction(ILock aggregateRootLock, IRevisionStore revisionStore, IConsulClient consulClient, IOptionsMonitor<ConsulAggregateRootAtomicActionOptions> options)
+        public ConsulAggregateRootAtomicAction(IConsulClient consulClient)
         {
-            this.aggregateRootLock = aggregateRootLock;
-            this.revisionStore = revisionStore;
-            this.consulClient = consulClient;
-            this.options = options.CurrentValue;
-            options.OnChange(newOptions => this.options = newOptions);
+            this.consul = consulClient;
         }
 
         public Result<bool> Execute(IAggregateRootId arId, int aggregateRootRevision, Action action)
         {
-            var sessionName = $"session/{arId}";
-            var session = consulClient.CreateSession(sessionName, options.LockTtl, options.RevisionTtl);
-            if (session.Success == false)
-                return Result.Error("Unable to create session");
+            string id = Convert.ToBase64String(arId.RawId);
+            string sessionName = $"cronus/{arId.NID}/{id}";
 
-            var lockResult = Lock(arId, session.Id);
-            if (lockResult.IsNotSuccessful)
-                return Result.Error($"Lock failed becouse of: {lockResult.Errors?.MakeJustOneException()}");
-
+            CreateSessionResponse session = null;
             try
             {
-                var canExecuteActionResult = CanExecuteAction(arId, aggregateRootRevision, session.Id);
-                if (canExecuteActionResult.IsSuccessful && canExecuteActionResult.Value)
+                session = consul.CreateSession(sessionName);
+
+                if (session.Success == false)
+                    return Result.Error($"Unable to create consul session for {id}");
+
+                Result<bool> lockResult = PersistRevisionWith(arId, aggregateRootRevision, session.Id);
+
+                if (lockResult.IsSuccessful)
                 {
-                    var actionResult = ExecuteAction(action);
-
-                    if (actionResult.IsNotSuccessful)
+                    Result<bool> actionResult = ExecuteAction(action);
+                    if (actionResult.IsSuccessful)
                     {
-                        Rollback(arId, aggregateRootRevision, session.Id);
-                        return Result.Error($"Action failed becouse of: {actionResult.Errors?.MakeJustOneException()}");
+                        return actionResult;
                     }
-
-                    PersistRevision(arId, aggregateRootRevision, session.Id);
-
-                    return actionResult;
+                    else
+                    {
+                        return Result.Error($"AtomicAction failed becouse of: {actionResult.Errors?.MakeJustOneException()}");
+                    }
                 }
 
-                return new Result<bool>(false).WithError("Unable to execute action").WithError(canExecuteActionResult.Errors?.MakeJustOneException());
+                return new Result<bool>(false).WithError($"Unable to execute action for {id}");
             }
             catch (Exception ex)
             {
-                logger.ErrorException("Unable to execute action", ex);
+                logger.ErrorException($"Unable to execute action for {id}", ex);
                 return Result.Error(ex);
             }
             finally
             {
-                if (session.Success)
-                    Unlock(session.Id);
+                Unlock(session?.Id);
             }
         }
 
-        public void Dispose()
-        {
-            (aggregateRootLock as IDisposable)?.Dispose();
-            aggregateRootLock = null;
-
-            (revisionStore as IDisposable)?.Dispose();
-            revisionStore = null;
-
-            (consulClient as IDisposable)?.Dispose();
-            consulClient = null;
-        }
-
-        private Result<string> Lock(IAggregateRootId arId, string resource)
+        private void Unlock(string resource)
         {
             try
             {
-                if (aggregateRootLock.Lock(resource, TimeSpan.Zero) == false)
-                    return new Result<string>().WithError($"Failed to lock aggregate with id: {arId.Value}");
-
-                return new Result<string>(resource);
+                consul.DeleteSessionAsync(resource);
             }
             catch (Exception ex)
             {
-                return new Result<string>().WithError(ex);
+                logger.WarnException($"Unable to release lock for resource '{resource}' explicitly. The lock will be released automatically.", ex);
             }
         }
 
-        private Result<bool> CheckForExistingRevision(IAggregateRootId arId)
+        private Result<bool> PersistRevisionWith(IAggregateRootId arId, int revision, string session)
         {
-            return revisionStore.HasRevision(arId);
-        }
+            var revisionKey = GetRevisionKey(arId);
+            var created = consul.CreateKeyValueAsync(new CreateKeyValueRequest(revisionKey, revision, session)).ConfigureAwait(false).GetAwaiter().GetResult();
+            if (created == false)
+                return new Result<bool>(created).WithError("Unable to obtain lock for");
 
-        private Result<bool> SavePreviouseRevison(IAggregateRootId arId, int revision, string session)
-        {
-            return revisionStore.SaveRevision(arId, revision - 1, session);
-        }
-
-        private void Rollback(IAggregateRootId arId, int revision, string session)
-        {
-            revisionStore.SaveRevision(arId, revision - 1, session);
-        }
-
-        private Result<bool> PersistRevision(IAggregateRootId arId, int revision, string session)
-        {
-            return revisionStore.SaveRevision(arId, revision, session);
-        }
-
-        private Result<bool> IncrementRevision(IAggregateRootId arId, int newRevision, string session)
-        {
-            return revisionStore.SaveRevision(arId, newRevision, session);
-        }
-
-        private bool IsConsecutiveRevision(IAggregateRootId arId, int revision)
-        {
-            var storedRevisionResult = revisionStore.GetRevision(arId);
-            return storedRevisionResult.IsSuccessful && storedRevisionResult.Value == revision - 1;
+            return new Result<bool>(created);
         }
 
         private Result<bool> ExecuteAction(Action action)
@@ -140,50 +92,11 @@ namespace Cronus.AtomicAction.Consul
             }
         }
 
-        private void Unlock(string resource)
+        private string GetRevisionKey(IAggregateRootId aggregateRootId) => $"cronus/{aggregateRootId.NID}/{Convert.ToBase64String(aggregateRootId.RawId)}";
+
+        public void Dispose()
         {
-            if (string.IsNullOrEmpty(resource)) return;
-
-            try
-            {
-                aggregateRootLock.Unlock(resource);
-            }
-            catch (Exception ex)
-            {
-                logger.ErrorException("Unable to unlock", ex);
-            }
-        }
-
-        Result<bool> CanExecuteAction(IAggregateRootId arId, int aggregateRootRevision, string session)
-        {
-            try
-            {
-                var existingRevisionResult = CheckForExistingRevision(arId);
-                if (existingRevisionResult.IsNotSuccessful)
-                {
-                    return new Result<bool>(false).WithError("ExistingRevisionResult is false.").WithError(existingRevisionResult.Errors?.MakeJustOneException());
-                }
-
-                if (existingRevisionResult.Value == false)
-                {
-                    var prevRevResult = SavePreviouseRevison(arId, aggregateRootRevision, session);
-
-                    if (prevRevResult.IsNotSuccessful)
-                        return new Result<bool>(false).WithError("PrevRevResult is false.").WithError(prevRevResult.Errors?.MakeJustOneException());
-                }
-
-                var isConsecutiveRevision = IsConsecutiveRevision(arId, aggregateRootRevision);
-                if (isConsecutiveRevision)
-                {
-                    return IncrementRevision(arId, aggregateRootRevision, session);
-                }
-
-                return new Result<bool>(false).WithError("Revisions were not consecutive");
-            }
-            catch (Exception ex)
-            {
-                return new Result<bool>(false).WithError(ex);
-            }
+            // There is a TTL set to every key inserted in Consul so there is no need for explicit releasing of locks
         }
     }
 }

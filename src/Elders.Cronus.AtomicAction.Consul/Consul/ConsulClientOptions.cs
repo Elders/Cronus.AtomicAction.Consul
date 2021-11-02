@@ -2,7 +2,7 @@
 
 namespace Cronus.AtomicAction.Consul
 {
-    public class ConsulClientOptions
+    internal class ConsulClientOptions
     {
         [Required(AllowEmptyStrings = false)]
         public string Endpoint { get; set; }

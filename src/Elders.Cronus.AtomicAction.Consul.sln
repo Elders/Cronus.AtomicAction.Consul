@@ -18,7 +18,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = ".build", ".build", "{2E4E7B
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Playground", "Playground\Playground.csproj", "{55B19440-7196-4E55-87EF-E7726CD4CA92}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Cronus.AtomicAction.Consul.Tests", "Cronus.AtomicAction.Consul.Tests\Cronus.AtomicAction.Consul.Tests.csproj", "{B0FA69F8-FB60-4220-96F8-27A990985BB8}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Cronus.AtomicAction.Consul.Tests", "Cronus.AtomicAction.Consul.Tests\Cronus.AtomicAction.Consul.Tests.csproj", "{B0FA69F8-FB60-4220-96F8-27A990985BB8}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

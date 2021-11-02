@@ -1,70 +1,66 @@
-﻿using System;
-using System.Linq;
-using Elders.Cronus;
-using Elders.Cronus.AtomicAction;
-using Microsoft.Extensions.Logging;
+﻿//using System;
+//using System.Collections.Generic;
+//using System.Linq;
+//using Elders.Cronus;
+//using Elders.Cronus.AtomicAction;
+//using Microsoft.Extensions.Logging;
 
-namespace Cronus.AtomicAction.Consul
-{
-    public class ConsulLock : ILock, IDisposable
-    {
-        private static readonly ILogger logger = CronusLogger.CreateLogger<ConsulLock>();
+//namespace Cronus.AtomicAction.Consul
+//{
+//    public class ConsulLock : ILock
+//    {
+//        private static readonly ILogger logger = CronusLogger.CreateLogger<ConsulLock>();
 
-        private IConsulClient client;
+//        private readonly IConsulClient consul;
 
-        public ConsulLock(IConsulClient client)
-        {
-            this.client = client;
-        }
+//        public ConsulLock(IConsulClient consulClient)
+//        {
+//            this.consul = consulClient;
+//        }
 
-        public bool IsLocked(string resource)
-        {
-            if (string.IsNullOrEmpty(resource)) throw new ArgumentException(nameof(resource));
+//        public bool IsLocked(string resource)
+//        {
+//            if (string.IsNullOrEmpty(resource))
+//                throw new ArgumentNullException(nameof(resource));
 
-            try
-            {
-                var response = client.ReadKeyValueAsync(resource).GetAwaiter().GetResult(); ;
-                return response.Any(x => x.Key == resource);
-            }
-            catch (Exception ex)
-            {
-                logger.LogError(ex, $"Unable to determine if resource '{resource}' is locked");
-                return false;
-            }
-        }
+//            try
+//            {
+//                IEnumerable<ReadKeyValueResponse> response = consul.ReadKeyValueAsync(resource).ConfigureAwait(false).GetAwaiter().GetResult();
+//                return response.Any(x => x.Key == resource);
+//            }
+//            catch (Exception ex)
+//            {
+//                logger.LogError(ex, $"Unable to determine if resource '{resource}' is locked");
+//                return false;
+//            }
+//        }
 
-        public bool Lock(string resource, TimeSpan ttl)
-        {
-            if (string.IsNullOrEmpty(resource)) throw new ArgumentException(nameof(resource));
+//        public bool Lock(string resource, TimeSpan ttl)
+//        {
+//            if (string.IsNullOrEmpty(resource)) throw new ArgumentException(nameof(resource));
 
-            try
-            {
-                var keyValueResponse = client.CreateKeyValueAsync(new CreateKeyValueRequest(resource, null, resource)).GetAwaiter().GetResult(); ;
-                return keyValueResponse;
-            }
-            catch (Exception ex)
-            {
-                logger.LogError(ex, $"Unable to acquire lock for resource '{resource}'");
-                return false;
-            }
-        }
+//            try
+//            {
+//                var keyValueResponse = consul.CreateKeyValueAsync(new CreateKeyValueRequest(resource, null, resource)).GetAwaiter().GetResult(); ;
+//                return keyValueResponse;
+//            }
+//            catch (Exception ex)
+//            {
+//                logger.LogError(ex, $"Unable to acquire lock for resource '{resource}'");
+//                return false;
+//            }
+//        }
 
-        public void Unlock(string resource)
-        {
-            try
-            {
-                client.DeleteSessionAsync(resource).ConfigureAwait(false).GetAwaiter().GetResult();
-            }
-            catch (Exception ex)
-            {
-                logger.LogError(ex, $"Unable to release lock for resource '{resource}'");
-            }
-        }
-
-        public void Dispose()
-        {
-            (client as IDisposable)?.Dispose();
-            client = null;
-        }
-    }
-}
+//        public void Unlock(string resource)
+//        {
+//            try
+//            {
+//                consul.DeleteSessionAsync(resource).ConfigureAwait(false).GetAwaiter().GetResult();
+//            }
+//            catch (Exception ex)
+//            {
+//                logger.LogError(ex, $"Unable to release lock for resource '{resource}'");
+//            }
+//        }
+//    }
+//}

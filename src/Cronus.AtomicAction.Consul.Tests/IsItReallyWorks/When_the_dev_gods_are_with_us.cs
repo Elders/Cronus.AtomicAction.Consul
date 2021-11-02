@@ -4,7 +4,6 @@ using Elders.Cronus.Userfull;
 using FakeItEasy;
 using Machine.Specifications;
 using Playground;
-using static Cronus.AtomicAction.Consul.ConsulClient;
 
 namespace Cronus.AtomicAction.Consul.Tests.IsItReallyWorks
 {
@@ -23,7 +22,7 @@ namespace Cronus.AtomicAction.Consul.Tests.IsItReallyWorks
             client = A.Fake<IConsulClient>();
             lockManager = A.Fake<ILock>();
             revisionStore = A.Fake<IRevisionStore>();
-            A.CallTo(() => client.CreateSession(sessionName, options.LockTtl, options.RevisionTtl)).Returns(new CreateSessionResponse() { Id = sessionId });
+            A.CallTo(() => client.CreateSession(sessionName)).Returns(new CreateSessionResponse() { Id = sessionId });
             A.CallTo(() => lockManager.Lock(sessionId, TimeSpan.Zero)).Returns(true);
             A.CallTo(() => revisionStore.SaveRevision(id, revision, sessionId)).Returns(new Result<bool>(true));
             service = TestAtomicActionFactory.New(lockManager, client, revisionStore);
@@ -35,7 +34,7 @@ namespace Cronus.AtomicAction.Consul.Tests.IsItReallyWorks
 
         It should_not_have_an_exception_recorded = () => result.Errors.ShouldBeEmpty();
 
-        It should_try_to_create_a_session = () => A.CallTo(() => client.CreateSession(sessionName, options.LockTtl, options.RevisionTtl)).MustHaveHappenedOnceExactly();
+        It should_try_to_create_a_session = () => A.CallTo(() => client.CreateSession(sessionName)).MustHaveHappenedOnceExactly();
 
         It should_lock_the_mutex = () => A.CallTo(() => lockManager.Lock(sessionId, TimeSpan.Zero)).MustHaveHappenedOnceExactly();
 
@@ -60,10 +59,4 @@ namespace Cronus.AtomicAction.Consul.Tests.IsItReallyWorks
         static ConsulClientOptions clientOptions;
     }
 }
-
-// Real Dependencies
-//client = TestConsulClientFactory.New();
-//lockManager = new ConsulLock(client);
-//revisionStore = new ConsulRevisionStore(client);
-//service = TestAtomicActionFactory.New(lockManager, client, revisionStore);
 

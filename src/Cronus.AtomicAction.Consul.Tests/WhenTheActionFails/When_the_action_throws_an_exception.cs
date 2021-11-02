@@ -4,7 +4,6 @@ using Elders.Cronus.Userfull;
 using FakeItEasy;
 using Machine.Specifications;
 using Playground;
-using static Cronus.AtomicAction.Consul.ConsulClient;
 
 namespace Cronus.AtomicAction.Consul.Tests.WhenTheActionFails
 {
@@ -19,7 +18,7 @@ namespace Cronus.AtomicAction.Consul.Tests.WhenTheActionFails
             options = new ConsulAtomicActionOptionsMonitorMock().CurrentValue;
 
             client = A.Fake<IConsulClient>();
-            A.CallTo(() => client.CreateSession(sessionName, options.LockTtl, options.RevisionTtl)).Returns(new CreateSessionResponse() { Id = sessionId });
+            A.CallTo(() => client.CreateSession(sessionName)).Returns(new CreateSessionResponse() { Id = sessionId });
 
             revisionStore = A.Fake<IRevisionStore>();
             A.CallTo(() => revisionStore.HasRevision(id)).Returns(Elders.Cronus.Userfull.Result.Success);

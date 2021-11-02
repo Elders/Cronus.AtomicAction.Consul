@@ -1,8 +1,10 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using Elders.Cronus;
 using Elders.Cronus.AtomicAction;
 using Elders.Cronus.Discoveries;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Options;
 
 namespace Cronus.AtomicAction.Consul
 {
@@ -10,16 +12,26 @@ namespace Cronus.AtomicAction.Consul
     {
         protected override DiscoveryResult<IAggregateRootAtomicAction> DiscoverFromAssemblies(DiscoveryContext context)
         {
-            return new DiscoveryResult<IAggregateRootAtomicAction>(GetModels(context), services => services.AddOptions<ConsulClientOptions, ConsulClientOptionsProvider>()
-                                                                                                           .AddOptions<ConsulAggregateRootAtomicActionOptions, ConsulAggregateRootAtomicActionOptionsProvider>());
+            return new DiscoveryResult<IAggregateRootAtomicAction>(GetModels(), AddServices);
         }
 
-        IEnumerable<DiscoveredModel> GetModels(DiscoveryContext context)
+        private void AddServices(IServiceCollection services)
         {
-            yield return new DiscoveredModel(typeof(IAggregateRootAtomicAction), typeof(ConsulAggregateRootAtomicAction), ServiceLifetime.Transient);
-            yield return new DiscoveredModel(typeof(IConsulClient), typeof(ConsulClient), ServiceLifetime.Singleton);
-            yield return new DiscoveredModel(typeof(ILock), typeof(ConsulLock), ServiceLifetime.Singleton);
-            yield return new DiscoveredModel(typeof(IRevisionStore), typeof(ConsulRevisionStore), ServiceLifetime.Singleton);
+            services.AddOptions<ConsulClientOptions, ConsulClientOptionsProvider>();
+            services.AddOptions<ConsulAggregateRootAtomicActionOptions, ConsulAggregateRootAtomicActionOptionsProvider>();
+
+            services.AddHttpClient<IConsulClient, ConsulClient>("cronus.atomicaction", (provider, client) =>
+            {
+                var options = provider.GetRequiredService<IOptions<ConsulClientOptions>>().Value;
+                var builder = new UriBuilder(options.Endpoint);
+
+                client.BaseAddress = builder.Uri;
+            });
+        }
+
+        IEnumerable<DiscoveredModel> GetModels()
+        {
+            yield return new DiscoveredModel(typeof(IAggregateRootAtomicAction), typeof(ConsulAggregateRootAtomicAction), ServiceLifetime.Singleton);
         }
     }
 }

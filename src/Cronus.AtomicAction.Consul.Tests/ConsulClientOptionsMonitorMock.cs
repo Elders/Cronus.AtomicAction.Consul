@@ -1,11 +1,9 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Text;
 using Microsoft.Extensions.Options;
 
 namespace Cronus.AtomicAction.Consul.Tests
 {
-    public class ConsulClientOptionsMonitorMock : IOptionsMonitor<ConsulClientOptions>
+    internal class ConsulClientOptionsMonitorMock : IOptionsMonitor<ConsulClientOptions>
     {
         public ConsulClientOptions CurrentValue => new ConsulClientOptions();
 

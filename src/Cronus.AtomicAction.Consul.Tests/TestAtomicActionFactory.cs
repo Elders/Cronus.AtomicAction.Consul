@@ -1,5 +1,4 @@
-﻿using System;
-using Elders.Cronus.AtomicAction;
+﻿using Elders.Cronus.AtomicAction;
 
 namespace Cronus.AtomicAction.Consul.Tests
 {
@@ -7,7 +6,7 @@ namespace Cronus.AtomicAction.Consul.Tests
     {
         public static IAggregateRootAtomicAction New(ILock aggregateRootLock, IConsulClient conuslClient, IRevisionStore revisionStore)
         {
-            return new ConsulAggregateRootAtomicAction(aggregateRootLock, revisionStore, conuslClient, new ConsulAtomicActionOptionsMonitorMock());
+            return new ConsulAggregateRootAtomicAction(aggregateRootLock, revisionStore, conuslClient);
         }
     }
 }

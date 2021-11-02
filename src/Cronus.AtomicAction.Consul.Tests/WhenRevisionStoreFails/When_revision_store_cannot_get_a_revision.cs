@@ -4,7 +4,6 @@ using FakeItEasy;
 using System;
 using Machine.Specifications;
 using Playground;
-using static Cronus.AtomicAction.Consul.ConsulClient;
 
 namespace Cronus.AtomicAction.Consul.Tests.WhenRevisionStoreFails
 {
@@ -22,7 +21,7 @@ namespace Cronus.AtomicAction.Consul.Tests.WhenRevisionStoreFails
             A.CallTo(() => lockManager.Lock(sessionId, A<TimeSpan>.Ignored)).Returns(true);
 
             client = A.Fake<IConsulClient>();
-            A.CallTo(() => client.CreateSession(sessionName, options.LockTtl, options.RevisionTtl)).Returns(new CreateSessionResponse() { Id = sessionId });
+            A.CallTo(() => client.CreateSession(sessionName)).Returns(new CreateSessionResponse() { Id = sessionId });
 
             revisionStore = A.Fake<IRevisionStore>();
             A.CallTo(() => revisionStore.HasRevision(id)).Returns(Elders.Cronus.Userfull.Result.Success);

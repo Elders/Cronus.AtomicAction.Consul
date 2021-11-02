@@ -3,7 +3,7 @@ using Microsoft.Extensions.Configuration;
 
 namespace Cronus.AtomicAction.Consul
 {
-    public class ConsulClientOptionsProvider : CronusOptionsProviderBase<ConsulClientOptions>
+    internal class ConsulClientOptionsProvider : CronusOptionsProviderBase<ConsulClientOptions>
     {
         public ConsulClientOptionsProvider(IConfiguration configuration) : base(configuration) { }
 
