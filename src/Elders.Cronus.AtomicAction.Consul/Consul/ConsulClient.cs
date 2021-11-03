@@ -74,6 +74,8 @@ namespace Cronus.AtomicAction.Consul
             return false;
         }
 
+
+
         public async Task<bool> CreateKeyValueAsync(CreateKeyValueRequest request)
         {
             var query = HttpUtility.ParseQueryString(string.Empty);
@@ -124,6 +126,11 @@ namespace Cronus.AtomicAction.Consul
             }
 
             return false;
+        }
+
+        public bool CreateKeyValue(string revisionKey, int revision, string session)
+        {
+            return CreateKeyValueAsync(new CreateKeyValueRequest(revisionKey, revision, session)).ConfigureAwait(false).GetAwaiter().GetResult();
         }
     }
 }

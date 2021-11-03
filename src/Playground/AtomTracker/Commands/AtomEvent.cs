@@ -5,11 +5,11 @@ using Elders.Cronus;
 namespace Playground.AtomTracker.Commands
 {
     [DataContract(Name = "e5b5519f-1060-4a90-8156-0d34c4c9f231")]
-    public class BravoBeee : Elders.Cronus.ICommand
+    public class AtomEvent : Elders.Cronus.ICommand
     {
-        private BravoBeee() { }
+        private AtomEvent() { }
 
-        public BravoBeee(AtomTrackerId id)
+        public AtomEvent(AtomTrackerId id)
         {
             Id = id;
         }

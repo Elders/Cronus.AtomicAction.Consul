@@ -14,7 +14,7 @@ namespace Playground
     {
         public static async Task Main(string[] args)
         {
-            var hostBuilder = Microsoft.Extensions.Hosting.Host.CreateDefaultBuilder(args)
+            var hostBuilder = Host.CreateDefaultBuilder(args)
                 .ConfigureAppConfiguration(x => x.AddEnvironmentVariables())
                 .ConfigureServices((hostContext, services) =>
                 {
@@ -42,7 +42,6 @@ namespace Playground
 
         protected override async Task ExecuteAsync(CancellationToken stoppingToken)
         {
-
             Activity.DefaultIdFormat = ActivityIdFormat.W3C;
             Publish(publisher);
             cronusHost.Start();
@@ -59,7 +58,7 @@ namespace Playground
         {
             for (int i = 0; i < 10_000; i++)
             {
-                var cmd = new BravoBeee(new AtomTracker.AtomTrackerId(i.ToString(), "elders"));
+                var cmd = new AtomEvent(new AtomTracker.AtomTrackerId(i.ToString(), "elders"));
                 publisher.Publish(cmd);
             }
         }

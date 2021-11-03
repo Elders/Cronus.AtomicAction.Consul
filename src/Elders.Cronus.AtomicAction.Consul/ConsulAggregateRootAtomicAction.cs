@@ -71,8 +71,8 @@ namespace Cronus.AtomicAction.Consul
 
         private Result<bool> PersistRevisionWith(IAggregateRootId arId, int revision, string session)
         {
-            var revisionKey = GetRevisionKey(arId);
-            var created = consul.CreateKeyValueAsync(new CreateKeyValueRequest(revisionKey, revision, session)).ConfigureAwait(false).GetAwaiter().GetResult();
+            string revisionKey = GetRevisionKey(arId);
+            bool created = consul.CreateKeyValue(revisionKey, revision, session);
             if (created == false)
                 return new Result<bool>(created).WithError("Unable to obtain lock for");
 

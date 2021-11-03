@@ -4,14 +4,14 @@ using Playground.AtomTracker.Commands;
 namespace Playground.AtomTracker
 {
     public class AtomTrackerAppService : ApplicationService<AtomTracker>,
-        ICommandHandler<BravoBeee>
+        ICommandHandler<AtomEvent>
     {
         public AtomTrackerAppService(IAggregateRepository repo) : base(repo)
         {
 
         }
 
-        public void Handle(BravoBeee command)
+        public void Handle(AtomEvent command)
         {
             var ar = new AtomTracker(command.Id);
             repository.Save(ar);

@@ -12,5 +12,6 @@ namespace Cronus.AtomicAction.Consul
         Task<bool> CreateKeyValueAsync(CreateKeyValueRequest request);
         Task<IEnumerable<ReadKeyValueResponse>> ReadKeyValueAsync(string key, bool recurce = false);
         Task<bool> DeleteKeyValueAsync(string key);
+        bool CreateKeyValue(string revisionKey, int revision, string session);
     }
 }

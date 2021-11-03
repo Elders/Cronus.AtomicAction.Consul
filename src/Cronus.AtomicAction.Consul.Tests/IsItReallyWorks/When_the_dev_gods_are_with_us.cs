@@ -12,23 +12,18 @@ namespace Cronus.AtomicAction.Consul.Tests.IsItReallyWorks
     {
         Establish context = () =>
         {
-            id = new HeadquarterId("20ed0b20-0f7f-4659-9211-0bee5b693e51", "elders");
-            sessionName = $"session/{id}";
-            sessionId = $"session{id}";
-            options = new ConsulAtomicActionOptionsMonitorMock().CurrentValue;
-            clientOptions = new ConsulClientOptionsMonitorMock().CurrentValue;
+            arId = new HeadquarterId("20ed0b20-0f7f-4659-9211-0bee5b693e51", "elders");
+            sessionName = $"cronus/{arId.NID}/{Convert.ToBase64String(arId.RawId)}";
+            sessionId = $"session/{arId}";
 
             // Fakes
             client = A.Fake<IConsulClient>();
-            lockManager = A.Fake<ILock>();
-            revisionStore = A.Fake<IRevisionStore>();
             A.CallTo(() => client.CreateSession(sessionName)).Returns(new CreateSessionResponse() { Id = sessionId });
-            A.CallTo(() => lockManager.Lock(sessionId, TimeSpan.Zero)).Returns(true);
-            A.CallTo(() => revisionStore.SaveRevision(id, revision, sessionId)).Returns(new Result<bool>(true));
-            service = TestAtomicActionFactory.New(lockManager, client, revisionStore);
+            A.CallTo(() => client.CreateKeyValue(sessionName, revision, sessionId)).Returns(true);
+            service = TestAtomicActionFactory.New(client);
         };
 
-        Because of = () => result = service.Execute(id, revision, action);
+        Because of = () => result = service.Execute(arId, revision, action);
 
         It should_return_true_as_a_result = () => result.IsSuccessful.ShouldBeTrue();
 
@@ -36,27 +31,21 @@ namespace Cronus.AtomicAction.Consul.Tests.IsItReallyWorks
 
         It should_try_to_create_a_session = () => A.CallTo(() => client.CreateSession(sessionName)).MustHaveHappenedOnceExactly();
 
-        It should_lock_the_mutex = () => A.CallTo(() => lockManager.Lock(sessionId, TimeSpan.Zero)).MustHaveHappenedOnceExactly();
+        It should_try_to_create_a_kv = () => A.CallTo(() => client.CreateKeyValue(sessionName, revision, sessionId)).MustHaveHappenedOnceExactly();
 
-        It should_try_to_unlock_the_mutex = () => A.CallTo(() => lockManager.Unlock(sessionId)).MustHaveHappenedOnceExactly();
-
-        It should_try_to_persist_the_stored_revision = () => A.CallTo(() => revisionStore.SaveRevision(id, revision, sessionId)).MustHaveHappened();
+        It should_try_to_delete_session = () => A.CallTo(() => client.DeleteSessionAsync(sessionId)).MustHaveHappenedOnceExactly();
 
         It should_execute_the_given_action = () => actionExecuted.ShouldBeTrue();
 
         static int revision = 1;
         static string sessionName;
         static string sessionId;
-        static HeadquarterId id;
-        static ILock lockManager;
-        static IRevisionStore revisionStore;
+        static HeadquarterId arId;
         static IAggregateRootAtomicAction service;
         static IConsulClient client;
         static Result<bool> result;
         static Action action = () => { actionExecuted = true; };
         static bool actionExecuted = false;
-        static ConsulAggregateRootAtomicActionOptions options;
-        static ConsulClientOptions clientOptions;
     }
 }
 

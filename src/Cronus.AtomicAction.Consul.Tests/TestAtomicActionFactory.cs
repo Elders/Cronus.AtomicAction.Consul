@@ -4,9 +4,9 @@ namespace Cronus.AtomicAction.Consul.Tests
 {
     public static class TestAtomicActionFactory
     {
-        public static IAggregateRootAtomicAction New(ILock aggregateRootLock, IConsulClient conuslClient, IRevisionStore revisionStore)
+        public static IAggregateRootAtomicAction New(IConsulClient conuslClient)
         {
-            return new ConsulAggregateRootAtomicAction(aggregateRootLock, revisionStore, conuslClient);
+            return new ConsulAggregateRootAtomicAction(conuslClient);
         }
     }
 }
