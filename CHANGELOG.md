@@ -1,3 +1,10 @@
+## [6.0.1](https://github.com/Elders/Cronus.AtomicAction.Consul/compare/v6.0.0...v6.0.1) (2021-11-11)
+
+
+### Bug Fixes
+
+* Fixes the package meta ([4569e15](https://github.com/Elders/Cronus.AtomicAction.Consul/commit/4569e155c1013780a94228c460c9f5671ce09c16))
+
 # [6.0.0](https://github.com/Elders/Cronus.AtomicAction.Consul/compare/v5.0.0...v6.0.0) (2021-11-11)
 
 
