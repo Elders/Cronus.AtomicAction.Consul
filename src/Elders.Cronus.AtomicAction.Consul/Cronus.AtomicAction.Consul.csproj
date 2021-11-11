@@ -1,7 +1,48 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <TargetFramework>netcoreapp3.1</TargetFramework>
   </PropertyGroup>
+
+  <!--Nuget-->
+  <PropertyGroup>
+    <PackageId>Cronus.AtomicAction.Consul</PackageId>
+
+    <Product>Cronus</Product>
+    <Title>Cronus</Title>
+    <Description>Cronus is a lightweight framework for building event driven systems with DDD/CQRS in mind.</Description>
+    <PackageTags>CQRS DDD ES Event store sourcing cronus</PackageTags>
+
+    <Copyright>Copyright © Elders OSS 2013-2022</Copyright>
+    <PackageLicenseExpression>Apache-2.0</PackageLicenseExpression>
+    <RequireLicenseAcceptance>true</RequireLicenseAcceptance>
+
+    <ReleaseNotes>https://github.com/Elders/Cronus.AtomicAction.Consul/blob/preview/CHANGELOG.md</ReleaseNotes>
+
+    <PackageIconUrl>https://raw.githubusercontent.com/Elders/logo/master/cronus/frame.png</PackageIconUrl>
+    <RepositoryUrl>https://github.com/Elders/Cronus.git</RepositoryUrl>
+    <PackageProjectUrl>https://github.com/Elders/Cronus</PackageProjectUrl>
+    <RepositoryType>git</RepositoryType>
+
+    <AssemblyName>Elders.Cronus.AtomicAction.Consul</AssemblyName>
+    <RootNamespace>Elders.Cronus.AtomicAction.Consul</RootNamespace>
+    <NeutralLanguage>en-US</NeutralLanguage>
+    <GenerateAssemblyInfo>true</GenerateAssemblyInfo>
+    <AssemblyVersion>6.0.0</AssemblyVersion>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Cronus" Version="6.4.3" />
+    <PackageReference Include="SourceLink.Create.CommandLine" Version="2.8.3" PrivateAssets="All" />
+    <PackageReference Include="Microsoft.Extensions.Http" Version="3.1.7" />
+
+    <AssemblyAttribute Include="System.Runtime.CompilerServices.InternalsVisibleToAttribute">
+      <_Parameter1>Cronus.AtomicAction.Consul.Tests</_Parameter1>
+    </AssemblyAttribute>
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.SourceLink.GitHub" Version="1.1.1" PrivateAssets="All" />
+  </ItemGroup>
 
 </Project>
