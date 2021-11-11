@@ -1,3 +1,5 @@
+# [7.0.0-preview.1](https://github.com/Elders/Cronus.AtomicAction.Consul/compare/v6.0.2-preview.1...v7.0.0-preview.1) (2021-11-11)
+
 ## [6.0.2-preview.1](https://github.com/Elders/Cronus.AtomicAction.Consul/compare/v6.0.1...v6.0.2-preview.1) (2021-11-11)
 
 
