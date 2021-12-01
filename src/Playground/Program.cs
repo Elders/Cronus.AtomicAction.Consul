@@ -24,7 +24,7 @@ namespace Playground
                     services.AddCronus(hostContext.Configuration);
                 });
 
-            hostBuilder.Build().Run();
+            await hostBuilder.Build().RunAsync();
         }
     }
 
@@ -40,11 +40,13 @@ namespace Playground
             CronusBooter.BootstrapCronus(provider);
         }
 
-        protected override async Task ExecuteAsync(CancellationToken stoppingToken)
+        protected override Task ExecuteAsync(CancellationToken stoppingToken)
         {
             Activity.DefaultIdFormat = ActivityIdFormat.W3C;
             Publish(publisher);
             cronusHost.Start();
+
+            return Task.CompletedTask;
         }
 
         public override Task StopAsync(CancellationToken cancellationToken)
