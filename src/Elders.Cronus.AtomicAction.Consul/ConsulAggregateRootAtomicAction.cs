@@ -46,9 +46,8 @@ namespace Cronus.AtomicAction.Consul
 
                 return new Result<bool>(false).WithError($"Unable to execute action for {id}");
             }
-            catch (Exception ex)
+            catch (Exception ex) when (logger.ErrorException(ex, () => $"Unable to execute action for {id}"))
             {
-                logger.ErrorException($"Unable to execute action for {id}", ex);
                 return Result.Error(ex);
             }
             finally
@@ -63,9 +62,9 @@ namespace Cronus.AtomicAction.Consul
             {
                 consul.DeleteSessionAsync(resource);
             }
-            catch (Exception ex)
+            catch (Exception ex) when (logger.WarnException(ex, () => $"Unable to release lock for resource '{resource}' explicitly. The lock will be released automatically."))
             {
-                logger.WarnException($"Unable to release lock for resource '{resource}' explicitly. The lock will be released automatically.", ex);
+
             }
         }
 
