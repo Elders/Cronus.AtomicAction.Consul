@@ -1,3 +1,10 @@
+# [7.0.0-preview.2](https://github.com/Elders/Cronus.AtomicAction.Consul/compare/v7.0.0-preview.1...v7.0.0-preview.2) (2021-12-01)
+
+
+### Bug Fixes
+
+* Update Cronus ([3f32c02](https://github.com/Elders/Cronus.AtomicAction.Consul/commit/3f32c0225127ac16f560bcc6503feb949567cfa1))
+
 # [7.0.0-preview.1](https://github.com/Elders/Cronus.AtomicAction.Consul/compare/v6.0.2-preview.1...v7.0.0-preview.1) (2021-11-11)
 
 ## [6.0.2-preview.1](https://github.com/Elders/Cronus.AtomicAction.Consul/compare/v6.0.1...v6.0.2-preview.1) (2021-11-11)
