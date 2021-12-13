@@ -36,11 +36,13 @@ namespace Cronus.AtomicAction.Consul
             var bodyAsJson = JsonSerializer.Serialize(request);
             var content = new StringContent(bodyAsJson);
 
-            HttpResponseMessage response = await httpClient.PutAsync(CreateSessionPath, content).ConfigureAwait(false);
-            if (response.IsSuccessStatusCode)
+            using (HttpResponseMessage response = await httpClient.PutAsync(CreateSessionPath, content).ConfigureAwait(false))
             {
-                string responseString = await response.Content.ReadAsStringAsync().ConfigureAwait(false);
-                return JsonSerializer.Deserialize<CreateSessionResponse>(responseString, serializerOptions);
+                if (response.IsSuccessStatusCode)
+                {
+                    using var contentStream = await response.Content.ReadAsStreamAsync().ConfigureAwait(false);
+                    return JsonSerializer.Deserialize<CreateSessionResponse>(contentStream, serializerOptions);
+                }
             }
 
             return new CreateSessionResponse();
@@ -50,11 +52,13 @@ namespace Cronus.AtomicAction.Consul
         {
             var path = $"/session/info/{id}?consistent";
 
-            HttpResponseMessage response = await httpClient.GetAsync(path).ConfigureAwait(false);
-            if (response.IsSuccessStatusCode)
+            using (HttpResponseMessage response = await httpClient.GetAsync(path).ConfigureAwait(false))
             {
-                string responseString = await response.Content.ReadAsStringAsync().ConfigureAwait(false);
-                return JsonSerializer.Deserialize<List<ReadSessionResponse>>(responseString, serializerOptions);
+                if (response.IsSuccessStatusCode)
+                {
+                    using var contentStream = await response.Content.ReadAsStreamAsync().ConfigureAwait(false);
+                    return JsonSerializer.Deserialize<List<ReadSessionResponse>>(contentStream, serializerOptions);
+                }
             }
 
             return Enumerable.Empty<ReadSessionResponse>();
@@ -64,11 +68,13 @@ namespace Cronus.AtomicAction.Consul
         {
             var path = $"/v1/session/destroy/{id}";
 
-            HttpResponseMessage response = await httpClient.PutAsync(path, null).ConfigureAwait(false);
-            if (response.IsSuccessStatusCode)
+            using (HttpResponseMessage response = await httpClient.PutAsync(path, null).ConfigureAwait(false))
             {
-                var responseString = await response.Content.ReadAsStringAsync().ConfigureAwait(false);
-                return bool.Parse(responseString);
+                if (response.IsSuccessStatusCode)
+                {
+                    using var contentStream = await response.Content.ReadAsStreamAsync().ConfigureAwait(false);
+                    return JsonSerializer.Deserialize<bool>(contentStream, serializerOptions);
+                }
             }
 
             return false;
@@ -89,26 +95,35 @@ namespace Cronus.AtomicAction.Consul
             var json = JsonSerializer.Serialize(request.Value);
             var content = new StringContent(json);
             var path = $"/v1/kv/{request.Key}?{queryString}";
-            var response = await httpClient.PutAsync(path, content).ConfigureAwait(false);
-            if (response.IsSuccessStatusCode)
+
+            using (HttpResponseMessage response = await httpClient.PutAsync(path, content).ConfigureAwait(false))
             {
-                var responseString = await response.Content.ReadAsStringAsync().ConfigureAwait(false);
-                return bool.Parse(responseString);
+                if (response.IsSuccessStatusCode)
+                {
+                    using var contentStream = await response.Content.ReadAsStreamAsync().ConfigureAwait(false);
+                    return JsonSerializer.Deserialize<bool>(contentStream, serializerOptions);
+                }
             }
 
             return false;
         }
 
-        public async Task<IEnumerable<ReadKeyValueResponse>> ReadKeyValueAsync(string key, bool recurce = false)
+        public async Task<IEnumerable<ReadKeyValueResponse>> ReadKeyValueAsync(string key, bool recurse = false)
         {
-            var path = $"/v1/kv/{key}?recurce={recurce}&consistent";
+            var path = $"/v1/kv/{key}?recurse={recurse}&consistent";
 
-            var response = await httpClient.GetAsync(path).ConfigureAwait(false);
-            if (response.IsSuccessStatusCode)
+            using (HttpResponseMessage response = await httpClient.GetAsync(path).ConfigureAwait(false))
             {
-                var responseString = await response.Content.ReadAsStringAsync().ConfigureAwait(false);
-                List<ReadKeyValueResponse> result = JsonSerializer.Deserialize<List<ReadKeyValueResponse>>(responseString, serializerOptions);
-                return result;
+                if (response.IsSuccessStatusCode)
+                {
+                    using (var contentStrem = await response.Content.ReadAsStreamAsync().ConfigureAwait(false))
+                    {
+                        List<ReadKeyValueResponse> result = JsonSerializer.Deserialize<List<ReadKeyValueResponse>>(contentStrem, serializerOptions);
+
+                        if (result?.Any() == true)
+                            return result;
+                    }
+                }
             }
 
             return Enumerable.Empty<ReadKeyValueResponse>();
@@ -118,11 +133,13 @@ namespace Cronus.AtomicAction.Consul
         {
             var path = $"/v1/kv/{key}";
 
-            var response = await httpClient.DeleteAsync(path).ConfigureAwait(false);
-            if (response.IsSuccessStatusCode)
+            using (HttpResponseMessage response = await httpClient.DeleteAsync(path).ConfigureAwait(false))
             {
-                var responseString = await response.Content.ReadAsStringAsync().ConfigureAwait(false);
-                return bool.Parse(responseString);
+                if (response.IsSuccessStatusCode)
+                {
+                    using var contentStream = await response.Content.ReadAsStreamAsync().ConfigureAwait(false);
+                    return JsonSerializer.Deserialize<bool>(contentStream, serializerOptions);
+                }
             }
 
             return false;
