@@ -1,3 +1,10 @@
+# [7.0.0-preview.3](https://github.com/Elders/Cronus.AtomicAction.Consul/compare/v7.0.0-preview.2...v7.0.0-preview.3) (2021-12-13)
+
+
+### Bug Fixes
+
+* Changes response reading from string to stream ([092c1e2](https://github.com/Elders/Cronus.AtomicAction.Consul/commit/092c1e23c3ec880ee4fed0cf4af42c6667f4d03e))
+
 # [7.0.0-preview.2](https://github.com/Elders/Cronus.AtomicAction.Consul/compare/v7.0.0-preview.1...v7.0.0-preview.2) (2021-12-01)
 
 
