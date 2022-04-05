@@ -1,3 +1,13 @@
+# [7.0.0](https://github.com/Elders/Cronus.AtomicAction.Consul/compare/v6.0.1...v7.0.0) (2022-04-05)
+
+
+### Bug Fixes
+
+* Changes response reading from string to stream ([092c1e2](https://github.com/Elders/Cronus.AtomicAction.Consul/commit/092c1e23c3ec880ee4fed0cf4af42c6667f4d03e))
+* Removes obsolete source link ([04d8a53](https://github.com/Elders/Cronus.AtomicAction.Consul/commit/04d8a5342375b5b4ce9b60caa6a3cec8cf3c61a6))
+* Update Cronus ([3f32c02](https://github.com/Elders/Cronus.AtomicAction.Consul/commit/3f32c0225127ac16f560bcc6503feb949567cfa1))
+* Updates packages ([4b22705](https://github.com/Elders/Cronus.AtomicAction.Consul/commit/4b22705b610d0ee0b9fa696989daabb22c285e1a))
+
 # [7.0.0-preview.3](https://github.com/Elders/Cronus.AtomicAction.Consul/compare/v7.0.0-preview.2...v7.0.0-preview.3) (2021-12-13)
 
 
