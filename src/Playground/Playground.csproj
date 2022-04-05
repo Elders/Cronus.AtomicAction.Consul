@@ -7,7 +7,7 @@
 
   <ItemGroup>
     <!--<PackageReference Include="Cronus.AtomicAction.Consul" Version="1.0.0-preview.1" />-->
-    <PackageReference Include="Cronus.Persistence.Cassandra" Version="7.0.0-preview.2" />
+    <PackageReference Include="Cronus.Persistence.Cassandra" Version="7.0.0" />
     <PackageReference Include="Cronus.Serialization.NewtonsoftJson" Version="7.0.0-preview.1" />
     <PackageReference Include="Cronus.Transport.RabbitMQ" Version="7.0.0" />
     <PackageReference Include="Microsoft.Extensions.Hosting" Version="6.0.1" />
