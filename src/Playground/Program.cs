@@ -37,7 +37,6 @@ namespace Playground
         {
             this.cronusHost = cronusHost;
             this.publisher = publisher;
-            CronusBooter.BootstrapCronus(provider);
         }
 
         protected override Task ExecuteAsync(CancellationToken stoppingToken)
