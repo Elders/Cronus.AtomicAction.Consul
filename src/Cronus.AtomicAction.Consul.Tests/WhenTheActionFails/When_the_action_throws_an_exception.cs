@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Threading.Tasks;
 using Elders.Cronus.AtomicAction;
 using Elders.Cronus.Userfull;
 using FakeItEasy;
@@ -16,18 +17,18 @@ namespace Cronus.AtomicAction.Consul.Tests.WhenTheActionFails
             sessionName = $"cronus/{arId.NID}/{Convert.ToBase64String(arId.RawId)}";
             sessionId = $"session/{arId}";
             client = A.Fake<IConsulClient>();
-            A.CallTo(() => client.CreateSession(sessionName)).Returns(new CreateSessionResponse() { Id = sessionId });
-            A.CallTo(() => client.CreateKeyValue(sessionName, revision, sessionId)).Returns(true);
+            A.CallTo(() => client.CreateSessionAsync(sessionName)).Returns(new CreateSessionResponse() { Id = sessionId });
+            A.CallTo(() => client.CreateKeyValueAsync(sessionName, revision, sessionId)).Returns(true);
             service = TestAtomicActionFactory.New(client);
         };
 
-        Because of = () => result = service.Execute(arId, 1, action);
+        Because of = async () => result = await service.ExecuteAsync(arId, 1, action);
 
         It should_return_false_as_a_result = () => result.Value.ShouldBeFalse();
         It should_have_an_exception_produced = () => result.Errors.ShouldNotBeEmpty();
         It should_execute_the_given_action = () => actionExecuted.ShouldBeTrue();
-        It should_try_to_create_a_session = () => A.CallTo(() => client.CreateSession(sessionName)).MustHaveHappened();
-        It should_try_to_create_a_kv = () => A.CallTo(() => client.CreateKeyValue(sessionName, revision, sessionId)).MustHaveHappened();
+        It should_try_to_create_a_session = () => A.CallTo(() => client.CreateSessionAsync(sessionName)).MustHaveHappened();
+        It should_try_to_create_a_kv = () => A.CallTo(() => client.CreateKeyValueAsync(sessionName, revision, sessionId)).MustHaveHappened();
         It should_try_to_unlock_the_mutex = () => A.CallTo(() => client.DeleteSessionAsync(sessionId)).MustHaveHappened();
 
         static int revision = 1;
@@ -38,10 +39,6 @@ namespace Cronus.AtomicAction.Consul.Tests.WhenTheActionFails
         static Result<bool> result;
         static IAggregateRootAtomicAction service;
         static bool actionExecuted = false;
-        static Action action = () =>
-        {
-            actionExecuted = true;
-            throw new Exception();
-        };
+        static Func<Task> action = () => { actionExecuted = true; throw new Exception(); };
     }
 }

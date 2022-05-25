@@ -1,5 +1,6 @@
 ﻿using Elders.Cronus;
 using Playground.AtomTracker.Commands;
+using System.Threading.Tasks;
 
 namespace Playground.AtomTracker
 {
@@ -11,10 +12,10 @@ namespace Playground.AtomTracker
 
         }
 
-        public void Handle(AtomEvent command)
+        public async Task HandleAsync(AtomEvent command)
         {
-            var ar = new AtomTracker(command.Id);
-            repository.Save(ar);
+            AtomTracker ar = new AtomTracker(command.Id);
+            await repository.SaveAsync(ar).ConfigureAwait(false);
         }
     }
 }

@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Threading.Tasks;
 using Elders.Cronus.AtomicAction;
 using Elders.Cronus.Userfull;
 using FakeItEasy;
@@ -16,16 +17,16 @@ namespace Cronus.AtomicAction.Consul.Tests.WhenRevisionStoreFails
             sessionName = $"cronus/{arId.NID}/{Convert.ToBase64String(arId.RawId)}";
             sessionId = $"session/{arId}";
             client = A.Fake<IConsulClient>();
-            A.CallTo(() => client.CreateSession(sessionName)).Returns(new CreateSessionResponse() { Id = sessionId });
+            A.CallTo(() => client.CreateSessionAsync(sessionName)).Returns(new CreateSessionResponse() { Id = sessionId });
             service = TestAtomicActionFactory.New(client);
         };
 
-        Because of = () => result = service.Execute(arId, 1, action);
+        Because of = async () => result = await service.ExecuteAsync(arId, 1, action);
 
         It should_return__false__as_a_result = () => result.Value.ShouldBeFalse();
         It should_have_an_exception_recorded = () => result.Errors.ShouldNotBeEmpty();
         It should_not_execute_the_given_action = () => actionExecuted.ShouldBeFalse();
-        It should_try_to_create_a_session = () => A.CallTo(() => client.CreateSession(sessionName)).MustHaveHappenedOnceExactly();
+        It should_try_to_create_a_session = () => A.CallTo(() => client.CreateSessionAsync(sessionName)).MustHaveHappenedOnceExactly();
         It should_try_to_unlock_the_mutex = () => A.CallTo(() => client.DeleteSessionAsync(sessionId)).MustHaveHappenedOnceExactly();
 
         static string sessionId;
@@ -34,7 +35,7 @@ namespace Cronus.AtomicAction.Consul.Tests.WhenRevisionStoreFails
         static IConsulClient client;
         static IAggregateRootAtomicAction service;
         static Result<bool> result;
-        static Action action = () => { actionExecuted = true; };
+        static Func<Task> action = () => { actionExecuted = true; return Task.CompletedTask; };
         static bool actionExecuted;
     }
 }

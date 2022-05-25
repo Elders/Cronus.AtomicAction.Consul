@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Threading.Tasks;
 using Elders.Cronus.AtomicAction;
 using Elders.Cronus.Userfull;
 using FakeItEasy;
@@ -18,20 +19,20 @@ namespace Cronus.AtomicAction.Consul.Tests.IsItReallyWorks
 
             // Fakes
             client = A.Fake<IConsulClient>();
-            A.CallTo(() => client.CreateSession(sessionName)).Returns(new CreateSessionResponse() { Id = sessionId });
-            A.CallTo(() => client.CreateKeyValue(sessionName, revision, sessionId)).Returns(true);
+            A.CallTo(() => client.CreateSessionAsync(sessionName)).Returns(new CreateSessionResponse() { Id = sessionId });
+            A.CallTo(() => client.CreateKeyValueAsync(sessionName, revision, sessionId)).Returns(true);
             service = TestAtomicActionFactory.New(client);
         };
 
-        Because of = () => result = service.Execute(arId, revision, action);
+        Because of = async () => result = await service.ExecuteAsync(arId, revision, action);
 
         It should_return_true_as_a_result = () => result.IsSuccessful.ShouldBeTrue();
 
         It should_not_have_an_exception_recorded = () => result.Errors.ShouldBeEmpty();
 
-        It should_try_to_create_a_session = () => A.CallTo(() => client.CreateSession(sessionName)).MustHaveHappenedOnceExactly();
+        It should_try_to_create_a_session = () => A.CallTo(() => client.CreateSessionAsync(sessionName)).MustHaveHappenedOnceExactly();
 
-        It should_try_to_create_a_kv = () => A.CallTo(() => client.CreateKeyValue(sessionName, revision, sessionId)).MustHaveHappenedOnceExactly();
+        It should_try_to_create_a_kv = () => A.CallTo(() => client.CreateKeyValueAsync(sessionName, revision, sessionId)).MustHaveHappenedOnceExactly();
 
         It should_try_to_delete_session = () => A.CallTo(() => client.DeleteSessionAsync(sessionId)).MustHaveHappenedOnceExactly();
 
@@ -44,7 +45,7 @@ namespace Cronus.AtomicAction.Consul.Tests.IsItReallyWorks
         static IAggregateRootAtomicAction service;
         static IConsulClient client;
         static Result<bool> result;
-        static Action action = () => { actionExecuted = true; };
+        static Func<Task> action = () => { actionExecuted = true; return Task.CompletedTask; };
         static bool actionExecuted = false;
     }
 }

@@ -4,7 +4,6 @@ using System.Net.Http;
 using System.Text.Json;
 using System.Threading.Tasks;
 using System.Web;
-using Elders.Cronus;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 
@@ -12,23 +11,23 @@ namespace Cronus.AtomicAction.Consul
 {
     internal partial class ConsulClient : IConsulClient
     {
-        private static readonly ILogger logger = CronusLogger.CreateLogger<ConsulClient>();
-
         private static readonly JsonSerializerOptions serializerOptions = new JsonSerializerOptions { PropertyNameCaseInsensitive = true };
+        private readonly ILogger logger;
         private readonly HttpClient httpClient;
         private readonly ConsulAggregateRootAtomicActionOptions options;
 
-        public ConsulClient(HttpClient httpClient, IOptionsMonitor<ConsulAggregateRootAtomicActionOptions> options)
+        public ConsulClient(HttpClient httpClient, IOptionsMonitor<ConsulAggregateRootAtomicActionOptions> options, ILogger<ConsulClient> logger)
         {
+            this.logger = logger;
             this.httpClient = httpClient;
             this.options = options.CurrentValue;
         }
 
         const string CreateSessionPath = "/v1/session/create";
 
-        public CreateSessionResponse CreateSession(string name)
+        public Task<CreateSessionResponse> CreateSessionAsync(string name)
         {
-            return CreateSessionAsync(new CreateSessionRequest(name, options.LockTtl)).ConfigureAwait(false).GetAwaiter().GetResult();
+            return CreateSessionAsync(new CreateSessionRequest(name, options.LockTtl));
         }
 
         public async Task<CreateSessionResponse> CreateSessionAsync(CreateSessionRequest request)
@@ -41,7 +40,7 @@ namespace Cronus.AtomicAction.Consul
                 if (response.IsSuccessStatusCode)
                 {
                     using var contentStream = await response.Content.ReadAsStreamAsync().ConfigureAwait(false);
-                    return JsonSerializer.Deserialize<CreateSessionResponse>(contentStream, serializerOptions);
+                    return await JsonSerializer.DeserializeAsync<CreateSessionResponse>(contentStream, serializerOptions).ConfigureAwait(false);
                 }
             }
 
@@ -57,7 +56,7 @@ namespace Cronus.AtomicAction.Consul
                 if (response.IsSuccessStatusCode)
                 {
                     using var contentStream = await response.Content.ReadAsStreamAsync().ConfigureAwait(false);
-                    return JsonSerializer.Deserialize<List<ReadSessionResponse>>(contentStream, serializerOptions);
+                    return await JsonSerializer.DeserializeAsync<List<ReadSessionResponse>>(contentStream, serializerOptions).ConfigureAwait(false);
                 }
             }
 
@@ -73,7 +72,7 @@ namespace Cronus.AtomicAction.Consul
                 if (response.IsSuccessStatusCode)
                 {
                     using var contentStream = await response.Content.ReadAsStreamAsync().ConfigureAwait(false);
-                    return JsonSerializer.Deserialize<bool>(contentStream, serializerOptions);
+                    return await JsonSerializer.DeserializeAsync<bool>(contentStream, serializerOptions).ConfigureAwait(false);
                 }
             }
 
@@ -101,7 +100,7 @@ namespace Cronus.AtomicAction.Consul
                 if (response.IsSuccessStatusCode)
                 {
                     using var contentStream = await response.Content.ReadAsStreamAsync().ConfigureAwait(false);
-                    return JsonSerializer.Deserialize<bool>(contentStream, serializerOptions);
+                    return await JsonSerializer.DeserializeAsync<bool>(contentStream, serializerOptions).ConfigureAwait(false);
                 }
             }
 
@@ -118,7 +117,7 @@ namespace Cronus.AtomicAction.Consul
                 {
                     using (var contentStrem = await response.Content.ReadAsStreamAsync().ConfigureAwait(false))
                     {
-                        List<ReadKeyValueResponse> result = JsonSerializer.Deserialize<List<ReadKeyValueResponse>>(contentStrem, serializerOptions);
+                        List<ReadKeyValueResponse> result = await JsonSerializer.DeserializeAsync<List<ReadKeyValueResponse>>(contentStrem, serializerOptions).ConfigureAwait(false);
 
                         if (result?.Any() == true)
                             return result;
@@ -138,16 +137,16 @@ namespace Cronus.AtomicAction.Consul
                 if (response.IsSuccessStatusCode)
                 {
                     using var contentStream = await response.Content.ReadAsStreamAsync().ConfigureAwait(false);
-                    return JsonSerializer.Deserialize<bool>(contentStream, serializerOptions);
+                    return await JsonSerializer.DeserializeAsync<bool>(contentStream, serializerOptions).ConfigureAwait(false);
                 }
             }
 
             return false;
         }
 
-        public bool CreateKeyValue(string revisionKey, int revision, string session)
+        public Task<bool> CreateKeyValueAsync(string revisionKey, int revision, string session)
         {
-            return CreateKeyValueAsync(new CreateKeyValueRequest(revisionKey, revision, session)).ConfigureAwait(false).GetAwaiter().GetResult();
+            return CreateKeyValueAsync(new CreateKeyValueRequest(revisionKey, revision, session));
         }
     }
 }

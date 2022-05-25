@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Threading.Tasks;
 using Elders.Cronus;
 using Elders.Cronus.AtomicAction;
 using Elders.Cronus.Userfull;
@@ -8,15 +9,16 @@ namespace Cronus.AtomicAction.Consul
 {
     internal class ConsulAggregateRootAtomicAction : IAggregateRootAtomicAction
     {
-        private static readonly ILogger logger = CronusLogger.CreateLogger<ConsulAggregateRootAtomicAction>();
+        private readonly ILogger logger;
         private IConsulClient consul;
 
-        public ConsulAggregateRootAtomicAction(IConsulClient consulClient)
+        public ConsulAggregateRootAtomicAction(IConsulClient consulClient, ILogger<ConsulAggregateRootAtomicAction> logger = null)
         {
+            this.logger = logger;
             this.consul = consulClient;
         }
 
-        public Result<bool> Execute(IAggregateRootId arId, int aggregateRootRevision, Action action)
+        public async Task<Result<bool>> ExecuteAsync(IAggregateRootId arId, int aggregateRootRevision, Func<Task> action)
         {
             string id = Convert.ToBase64String(arId.RawId);
             string sessionName = $"cronus/{arId.NID}/{id}";
@@ -24,16 +26,16 @@ namespace Cronus.AtomicAction.Consul
             CreateSessionResponse session = null;
             try
             {
-                session = consul.CreateSession(sessionName);
+                session = await consul.CreateSessionAsync(sessionName).ConfigureAwait(false);
 
                 if (session.Success == false)
                     return Result.Error($"Unable to create consul session for {id}");
 
-                Result<bool> lockResult = PersistRevisionWith(arId, aggregateRootRevision, session.Id);
+                Result<bool> lockResult = await PersistRevisionWithAsync(arId, aggregateRootRevision, session.Id).ConfigureAwait(false);
 
                 if (lockResult.IsSuccessful)
                 {
-                    Result<bool> actionResult = ExecuteAction(action);
+                    Result<bool> actionResult = await ExecuteActionAsync(action).ConfigureAwait(false);
                     if (actionResult.IsSuccessful)
                     {
                         return actionResult;
@@ -52,37 +54,34 @@ namespace Cronus.AtomicAction.Consul
             }
             finally
             {
-                Unlock(session?.Id);
+                await UnlockAsync(session?.Id).ConfigureAwait(false);
             }
         }
 
-        private void Unlock(string resource)
+        private async Task UnlockAsync(string resource)
         {
             try
             {
-                consul.DeleteSessionAsync(resource);
+                await consul.DeleteSessionAsync(resource).ConfigureAwait(false);
             }
-            catch (Exception ex) when (logger.WarnException(ex, () => $"Unable to release lock for resource '{resource}' explicitly. The lock will be released automatically."))
-            {
-
-            }
+            catch (Exception ex) when (logger.WarnException(ex, () => $"Unable to release lock for resource '{resource}' explicitly. The lock will be released automatically.")) { }
         }
 
-        private Result<bool> PersistRevisionWith(IAggregateRootId arId, int revision, string session)
+        private async Task<Result<bool>> PersistRevisionWithAsync(IAggregateRootId arId, int revision, string session)
         {
             string revisionKey = GetRevisionKey(arId);
-            bool created = consul.CreateKeyValue(revisionKey, revision, session);
+            bool created = await consul.CreateKeyValueAsync(revisionKey, revision, session).ConfigureAwait(false);
             if (created == false)
                 return new Result<bool>(created).WithError("Unable to obtain lock for");
 
             return new Result<bool>(created);
         }
 
-        private Result<bool> ExecuteAction(Action action)
+        private async Task<Result<bool>> ExecuteActionAsync(Func<Task> action)
         {
             try
             {
-                action();
+                await action().ConfigureAwait(false);
                 return Result.Success;
             }
             catch (Exception ex)
