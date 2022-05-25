@@ -1,3 +1,10 @@
+# [8.0.0](https://github.com/Elders/Cronus.AtomicAction.Consul/compare/v7.0.0...v8.0.0) (2022-05-25)
+
+
+### Bug Fixes
+
+* bump Microsoft.NET.Test.Sdk from 17.1.0 to 17.2.0 ([1d51a65](https://github.com/Elders/Cronus.AtomicAction.Consul/commit/1d51a657a52c66436fca567a2081780960ac30c4))
+
 # [7.0.0](https://github.com/Elders/Cronus.AtomicAction.Consul/compare/v6.0.1...v7.0.0) (2022-04-05)
 
 
