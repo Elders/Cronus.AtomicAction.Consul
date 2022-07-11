@@ -9,7 +9,7 @@
     <!--<PackageReference Include="Cronus.AtomicAction.Consul" Version="1.0.0-preview.1" />-->
     <PackageReference Include="Cronus.Persistence.Cassandra" Version="8.0.0" />
     <PackageReference Include="Cronus.Serialization.NewtonsoftJson" Version="7.0.0" />
-    <PackageReference Include="Cronus.Transport.RabbitMQ" Version="8.0.0" />
+    <PackageReference Include="Cronus.Transport.RabbitMQ" Version="8.1.2" />
     <PackageReference Include="Microsoft.Extensions.Hosting" Version="6.0.1" />
     <PackageReference Include="Microsoft.Extensions.Logging.Console" Version="6.0.0" />
   </ItemGroup>
