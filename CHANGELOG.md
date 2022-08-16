@@ -1,3 +1,10 @@
+## [8.0.1](https://github.com/Elders/Cronus.AtomicAction.Consul/compare/v8.0.0...v8.0.1) (2022-08-16)
+
+
+### Bug Fixes
+
+* pipeline test ([a0c806c](https://github.com/Elders/Cronus.AtomicAction.Consul/commit/a0c806cb96d0dd882e29b4fa9430f291e1305ead))
+
 # [8.0.0](https://github.com/Elders/Cronus.AtomicAction.Consul/compare/v7.0.0...v8.0.0) (2022-05-25)
 
 
